@@ -12,7 +12,7 @@
 
 int main(){
 
-    char input[2000] = "Sed\n ut persp        iciatisundeom niist esss                  natus error sit voluptatem \n\n\naccusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab\n\n\n illo inventore veritatis\n\0";
+    char input[2000] = "Sed\n ut persp        iciatisundeomniistesss                  natus error sit voluptatem \n\n\naccusantium doloremquem laudantium, totam rem aperiam, eaque ipsa quae ab\n\n\n illo inventore veritatis\n\0";
     char *buffer = calloc(3*N, sizeof(char ));
 //    char *buffer_additional = calloc(3*N, sizeof(char ));
 

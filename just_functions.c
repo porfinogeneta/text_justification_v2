@@ -97,29 +97,33 @@ void justify_center(char buffer[], char input[], int N){
     // pointer to the index where we finished preparing our text
     int finishedPreparing = 0;
     char help_buff[N*3];
-
-//     clear buffer additional
-        for (int j = 0; j < (3 * N) - 1; ++j) {
-            help_buff[j] = '\0';
-        }
-    for (size_t i = 0; i < strlen(input);) {
+    int even = -1; // is even 1, is not -1
+    // clear buffer additional before everything
+    for (int j = 0; j < (3 * N) - 1; ++j) {
+        help_buff[j] = '\0';
+    }
+    int i = 0;
+    while (i < strlen(input) || help_buff[0] != '\0') {
 
         // prepare our text to justification
         // copy text not justified text into our buffer to handle it
+        int help_buff_len = strlen(help_buff);
         if (help_buff[0] != '\0') {
             strcat(buffer, help_buff);
             // reset our buffer
             memset(help_buff, 0, N*3);
         }
-        prepare_text(&input[i], N, &finishedPreparing, buffer);
+        // give more text only if it's possible and we don't risk buffor overflow
+        if (i < strlen(input) && help_buff_len < N*2){
+            prepare_text(&input[i], N, &finishedPreparing, buffer);
 //        printf("%s\n", buffer);
-
-        // we finish at different indexes in every part of input, that's why wy have +=
-        i += finishedPreparing;
-
+            // we finish at different indexes in every part of input, that's why wy have +=
+            i += finishedPreparing;
+        }
         // go from the end of buffer to N and add every char to the buffer_additional
         // take care of extensive string
-        size_t ind = strlen(buffer) - 1;
+        // TRIM CERTAINLY TOO LONG
+        int ind = strlen(buffer) - 1;
         // get rid of characters that are after N
         while (ind > N) {
             // shift string by one to the right
@@ -133,14 +137,15 @@ void justify_center(char buffer[], char input[], int N){
             buffer[ind] = '\0';
             ind--;
         }
-        printf("%s\n", buffer);
-        printf("help: %s \n", help_buff);
+//        printf("%s\n", buffer);
+//        printf("help: %s \n", help_buff);
         // get rid of chars that come from not-fitting words
+        // TRIM OVERFLOWING STRING
         if (!isspace(buffer[N] && buffer[N] != '\0')) {
             // check how long is that word that exceeds the length
 //            printf("yes\n");
             ind = N;
-            while (!isspace(buffer[ind]) && ind > 0) {
+            while (!isspace(buffer[ind]) && ind >= 0) {
                 // move buff_help to the right
                 for (size_t c = strlen(help_buff); c > 0; c--) {
                     help_buff[c] = help_buff[c - 1];
@@ -151,91 +156,175 @@ void justify_center(char buffer[], char input[], int N){
             }
         }
 
-//         case for whole line word
-//        if (ind + 1 == 0) {
-//            // bring the word back to the buffer, while adding '-' at the end
-//            for (int w = 0; w < N - 1; w++) {
-//                buffer[w] = buffer_additional[w];
-//                buffer_additional[w] = '\0'; // clear buffer additional
-//            }
-//            buffer[N - 1] = '-';
-//            // fix buffer additional, shift text to the left
-//            int shift_index = 0;
-//            while (shift_index < strlen(buffer)) {
-//                buffer_additional[shift_index] = buffer_additional[shift_index + N];
-//                buffer_additional[shift_index + N] = '\0'; // clear end after shifted
-//                shift_index++;
-//            }
-//        }
-//        printf("\n%s ", buffer_additional);
-//        // get to know what words should be in the buffer
-//        int buff_addi_len = strlen(buffer_additional);
-//        // clear everything after counted index, including index
-//        int dif = strlen(buffer) - buff_addi_len;
-//        while (buffer[dif] != '\0') {
-//            buffer[dif] = '\0';
-//            dif++;
-//        }
-//        // get rid of possible ending space
-//        if (isspace(buffer[strlen(buffer) - 1])) {
-//            buffer[strlen(buffer) - 1] = '\0';
-//        }
-//        // now let's count how many spaces do we have
-//        ind = 0;
-//        int holes = 0;
-//        while (ind < strlen(buffer) - 1) {
-//            if (isspace(buffer[ind])) {
-//                holes++;
-//            }
-//            ind++;
-//        }
 
-//        // spaces in each hole
-//        int spaces_in_each = N - strlen(buffer);
-//        // extra spaces
-//        int extra_spaces = spaces_in_each;
-//        if (holes != 0) {
-//            spaces_in_each = spaces_in_each / holes;
-//            extra_spaces = spaces_in_each % holes;
-//        }
-//        // PRINTING
-////        // case for one-word fitting
-//        if (holes == 0) {
-//            // equally distribute spaces
-//            int amount = spaces_in_each / 2;
-//            int additional = spaces_in_each % 2;
-//            for (int j = 0; j < amount; ++j) {
-//                printf(" ");
-//            }
-//            if (additional) printf(" ");
-//            printf("%s", buffer);
-//            for (int j = 0; j < amount; ++j) {
-//                printf(" ");
-//            }
-//        }
-//        printf("\n");
-
-//        // if only one word fits
-//        for (int j = 0; j < strlen(buffer); ++j) {
-//            if (isspace(buffer[j])) {
-//                int to_give = spaces_in_each;
-//                printf(" ");
-//                while (to_give > 0) {
-//                    printf(" ");
-//                    to_give--;
-//                }
-//                if (extra_spaces > 0) {
-//                    printf(" ");
-//                    extra_spaces--;
-//                }
-//            } else {
-//                // if it's not a one word fitting
-//                if (holes != 0) {
-//                    printf("%c", buffer[j]);
-//                }
-//            }
-//        }
-//        printf("\n");
+        // WHOLE-LINER CASE
+        if (ind + 1 == 0) {
+            // bring the word back to the buffer, while adding '-' at the end
+            for (int w = 0; w < N - 1; w++) {
+                buffer[w] = help_buff[w];
+                help_buff[w] = '\0'; // clear buffer additional
+            }
+            buffer[N - 1] = '-';
+            // fix help_buff, shift text to the left
+            int shift_index = 0;
+            while (help_buff[shift_index + (N-1)] != '\0') {
+                help_buff[shift_index] = help_buff[shift_index + (N-1)];
+                help_buff[shift_index + (N-1)] = '\0'; // clear end after shifted
+                shift_index++;
+            }
+        }
+        buffer[N+1] = '\0';
+//        printf("%s", buffer);
+        // PROPER SPACE DIVISION
+        givingResult(buffer, N, even);
+        even *= -1;
         memset(buffer, 0, 3 * N);
     }
+}
+
+void infoWords(char buffer[], int N, int *words_counter, int *letters_counter){
+    int ind = 0;
+    while (ind < N){
+        // if it's a letter
+        if (isspace(buffer[ind]) == 0 && buffer[ind] != '\0'){
+            int w_ind = ind;
+            // go to the end of encountered word
+            while (isspace(buffer[w_ind]) == 0 &&  w_ind < N){
+                w_ind++;
+                ++(*letters_counter);
+            }
+            ++(*words_counter);
+            ind = w_ind;
+        }else {
+            ind++;
+        }
+    }
+}
+
+void givingResult(char buffer[], int N, int even){
+    // count words
+    char *result = calloc(N*3, sizeof(char ));
+    int words_counter = 0;
+    int letters_counter = 0 ;
+    infoWords(buffer, N, &words_counter, &letters_counter);
+
+    int holes = words_counter - 1;
+    // true amount of needed spaces is that without obligatory spaces
+    letters_counter += holes;
+    int spaces_available = N - letters_counter;
+    int spaces_per_hole = 0;
+    int additional_spaces = 0;
+    if (holes > 0){
+        spaces_per_hole = spaces_available / holes;
+        additional_spaces = spaces_available % holes;
+    }else {
+        spaces_per_hole = spaces_available / 2;
+        additional_spaces = spaces_available % 2;
+    }
+
+    // NORMAL CASE JUSTIFICATION
+    if (words_counter > 1){
+        int ind = 0;
+        while (ind < N){
+            // if we encountered word and didn't exceed word length
+            while (isspace(buffer[ind]) == 0 && buffer[ind] != '\0'){
+                strncat(result, &buffer[ind], 1);
+//                printf("%c", buffer[ind]);
+                ind++;
+            }
+            // if we encountered space and there is an obligatory one
+            if (isspace(buffer[ind]) && holes > 0 && ind < N){
+                char w = ' ';
+                for (int i = 0; i < spaces_per_hole; ++i) {
+//                    printf(" ");
+                    strncat(result, &w, 1);
+                }
+                holes--;
+//                printf(" "); // printing obligatory space
+                strncat(result, &w, 1);
+            }
+            // distributing additional_spaces
+            ind++;
+        }
+    }
+    // ONE WORD FITTING CASE
+    else {
+        // it's a line that can accept some spaces
+        if (letters_counter <= N){
+            int ind = 0;
+            char s = ' ';
+            for (int i = 0; i < spaces_per_hole; ++i) {
+//                printf(" ");
+                strncat(result, &s, 1);
+            }
+            if (additional_spaces > 0 && even == 1){
+                strncat(result, &s, 1);
+            }
+            while (isspace(buffer[ind]) == 0 && buffer[ind] != '\0'){
+//                printf("%c", buffer[ind]);
+                strncat(result, &buffer[ind], 1);
+                ind++;
+            }
+            for (int i = 0; i < spaces_per_hole; ++i) {
+                strncat(result, &s, 1);
+//                printf(" ");
+            }
+            if (additional_spaces > 0 && even == -1){
+//                printf(" ");
+                strncat(result, &s, 1);
+            }
+        }
+    }
+
+
+    // take care of additional spaces
+    int additional_len = strlen(result);
+    int index = additional_len-1;
+    // in even rows
+    if (even == 1){
+        while (additional_spaces > 0 && words_counter > 1) {
+            // space was found
+            if (isspace(result[index])) {
+                int ind = index;
+                while (isspace(result[ind])) {
+                    ind--;
+                }
+                // shift right whole result to make place for additional space
+                for (int c = N-1; c > ind; c--) {
+                    result[c] = result[c - 1];
+                }
+                // insert space
+                result[ind+1] = ' ';
+                additional_spaces--;
+            }else {
+                index--;
+            }
+        }
+    }else {
+        index = 0;
+        while (additional_spaces > 0 && words_counter > 1) {
+            // space was found
+            if (isspace(result[index])) {
+                int ind = index;
+                while (isspace(result[ind])) {
+                    ind++;
+                }
+                // shift right whole result to make place for additional space
+                for (int c = N-1; c >= ind; c--) {
+                    result[c] = result[c - 1];
+                }
+                // insert space
+                result[ind] = ' ';
+                additional_spaces--;
+            }else {
+                index++;
+            }
+        }
+    }
+
+    printf("%s\n", result);
+
+    free(result);
+
+
 }
