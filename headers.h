@@ -5,8 +5,8 @@
 #ifndef TEXT_JUSTIFICATION_V2_HEADERS_H
 
 void prepare_text(char text[], int N, int *finishedPreparing, char *buffer);
-void justify_center(char buffer[], char input[], int N);
-void givingResult(char buffer[], int N, int even);
+void justify_center(char buffer[], char input[], int N, int alignment);
+void givingResult(char buffer[], int N, int even, int paragraph_counter, int alignment);
 
 
 

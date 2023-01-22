@@ -30,6 +30,9 @@ void prepare_text(char input[], int N, int *finishedPreparing, char *buffer) {
 
             if (amount >= 2 && index != 0) {
                 strcat(bufferNewLines, "\n\n");
+                // finish acquiring text
+                index = ind;
+                break;
 //                printf("\n\n");
             }
             // side-case spaces
@@ -71,18 +74,23 @@ void prepare_text(char input[], int N, int *finishedPreparing, char *buffer) {
 
             char oneSpace = ' ';
             // don't add space if the paragraph ends
-            if (bufferNewLines[ind+1] != '\n'){
+            // don't add space if the word just began
+            if (bufferNewLines[ind+1] != '\n' && letters > 0){
                 strncat(bufferNoSpaces, &oneSpace, 1);
             }
 
             index = ind;
         }
 
-
         if (!isspace(input[index])) {
             letters++;
         }
         strncat(bufferNoSpaces, &bufferNewLines[index], 1);
+
+        if (bufferNewLines[index] == '\n' && bufferNewLines[index - 1] == '\n'){
+            break;
+        }
+
         index++;
     }
 //    printf("%s", bufferNoSpaces);
@@ -93,9 +101,11 @@ void prepare_text(char input[], int N, int *finishedPreparing, char *buffer) {
 }
 
 
-void justify_center(char buffer[], char input[], int N){
+void justify_center(char buffer[], char input[], int N, int alignment){
     // pointer to the index where we finished preparing our text
     int finishedPreparing = 0;
+    int paragraph_counter = 0;
+    int is_end_paragraph = 0;
     char help_buff[N*3];
     int even = -1; // is even 1, is not -1
     // clear buffer additional before everything
@@ -108,13 +118,22 @@ void justify_center(char buffer[], char input[], int N){
         // prepare our text to justification
         // copy text not justified text into our buffer to handle it
         int help_buff_len = strlen(help_buff);
+        // check if the paragraph is coming to the end
+
+        if (help_buff[help_buff_len-1] == '\n'){
+            is_end_paragraph = 1;
+            paragraph_counter++;
+        }else {
+            is_end_paragraph = 0;
+        }
+        // clear help_buff
         if (help_buff[0] != '\0') {
             strcat(buffer, help_buff);
             // reset our buffer
             memset(help_buff, 0, N*3);
         }
-        // give more text only if it's possible and we don't risk buffor overflow
-        if (i < strlen(input) && help_buff_len < N*2){
+        // give more text only if it's possible and we don't risk buffer overflow
+        if (i < strlen(input) && help_buff_len < N*2 && is_end_paragraph == 0){
             prepare_text(&input[i], N, &finishedPreparing, buffer);
 //        printf("%s\n", buffer);
             // we finish at different indexes in every part of input, that's why wy have +=
@@ -176,7 +195,7 @@ void justify_center(char buffer[], char input[], int N){
         buffer[N+1] = '\0';
 //        printf("%s", buffer);
         // PROPER SPACE DIVISION
-        givingResult(buffer, N, even);
+        givingResult(buffer, N, even, paragraph_counter, alignment);
         even *= -1;
         memset(buffer, 0, 3 * N);
     }
@@ -201,7 +220,7 @@ void infoWords(char buffer[], int N, int *words_counter, int *letters_counter){
     }
 }
 
-void givingResult(char buffer[], int N, int even){
+void givingResult(char buffer[], int N, int even, int paragraph_counter, int alignment){
     // count words
     char *result = calloc(N*3, sizeof(char ));
     int words_counter = 0;
@@ -214,6 +233,7 @@ void givingResult(char buffer[], int N, int even){
     int spaces_available = N - letters_counter;
     int spaces_per_hole = 0;
     int additional_spaces = 0;
+    // COUNT HOLES
     if (holes > 0){
         spaces_per_hole = spaces_available / holes;
         additional_spaces = spaces_available % holes;
@@ -222,17 +242,29 @@ void givingResult(char buffer[], int N, int even){
         additional_spaces = spaces_available % 2;
     }
 
+    // if the row is the last in the paragraph
+    int is_last_row = 0;
+    int len = strlen(buffer);
+    if (buffer[len-1] == '\n'){
+        is_last_row = 1;
+    }
+    // if there isn't any alignment
+    if (is_last_row == 1 && alignment == 3){
+        is_last_row = 0;
+    }
+
     // NORMAL CASE JUSTIFICATION
     if (words_counter > 1){
         int ind = 0;
         while (ind < N){
             // if we encountered word and didn't exceed word length
             while (isspace(buffer[ind]) == 0 && buffer[ind] != '\0'){
+                // SPACE FOR IDENT
                 strncat(result, &buffer[ind], 1);
 //                printf("%c", buffer[ind]);
                 ind++;
             }
-            // if we encountered space and there is an obligatory one
+            // if we encountered space and it's an obligatory one
             if (isspace(buffer[ind]) && holes > 0 && ind < N){
                 char w = ' ';
                 for (int i = 0; i < spaces_per_hole; ++i) {
@@ -248,33 +280,85 @@ void givingResult(char buffer[], int N, int even){
         }
     }
     // ONE WORD FITTING CASE
-    else {
+    else if (words_counter == 1) {
         // it's a line that can accept some spaces
         if (letters_counter <= N){
             int ind = 0;
             char s = ' ';
+            // add spaces on the left
             for (int i = 0; i < spaces_per_hole; ++i) {
 //                printf(" ");
                 strncat(result, &s, 1);
             }
+            // add additional space on the left
             if (additional_spaces > 0 && even == 1){
                 strncat(result, &s, 1);
             }
+            // add word
             while (isspace(buffer[ind]) == 0 && buffer[ind] != '\0'){
 //                printf("%c", buffer[ind]);
                 strncat(result, &buffer[ind], 1);
                 ind++;
             }
+            // add spaces on the right
             for (int i = 0; i < spaces_per_hole; ++i) {
                 strncat(result, &s, 1);
 //                printf(" ");
             }
+            // add space on the left
             if (additional_spaces > 0 && even == -1){
 //                printf(" ");
                 strncat(result, &s, 1);
             }
         }
-    }
+    } // different alignment if it's the last row
+//    if (is_last_row == 1){
+//        int ind = 0;
+//        char s = ' ';
+//        // LEFT
+//        if (alignment == 0){
+//            for (int i = 0; i < (spaces_available+additional_spaces); ++i) {
+//                strncat(result, &s, 1);
+//            }
+//            while (isspace(buffer[ind]) == 0 && buffer[ind] != '\0'){
+//                strncat(result, &buffer[ind], 1);
+//                ind++;
+//            }
+//        } // RIGHT
+//        else if (alignment == 1){
+//            while (isspace(buffer[ind]) == 0 && buffer[ind] != '\0'){
+//                strncat(result, &buffer[ind], 1);
+//                ind++;
+//            }
+//            for (int i = 0; i < (spaces_available+additional_spaces); ++i) {
+//                strncat(result, &s, 1);
+//            }
+//        } else if (alignment == 2){
+//            spaces_per_hole = spaces_available / 2;
+//            additional_spaces = spaces_available % 2;
+//            // left spaces
+//            for (int i = 0; i < (spaces_per_hole); ++i) {
+//                strncat(result, &s, 1);
+//            }
+//            // additional space
+//            if (even == 1){
+//                strncat(result, &s, 1);
+//            }
+//            // word
+//            while (isspace(buffer[ind]) == 0 && buffer[ind] != '\0'){
+//                strncat(result, &buffer[ind], 1);
+//                ind++;
+//            }
+//            if (even == -1){
+//                strncat(result, &s, 1);
+//            }
+//            // right spaces
+//            for (int i = 0; i < (spaces_per_hole); ++i) {
+//                strncat(result, &s, 1);
+//            }
+//        }
+//
+//    }
 
 
     // take care of additional spaces
@@ -301,6 +385,7 @@ void givingResult(char buffer[], int N, int even){
             }
         }
     }else {
+        // in odd words
         index = 0;
         while (additional_spaces > 0 && words_counter > 1) {
             // space was found
