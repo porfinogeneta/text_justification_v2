@@ -1,7 +1,7 @@
 #include "headers.h"
-#include "string.h"
 #include "stdio.h"
-#include <ctype.h>
+#include "wchar.h"
+#include "locale.h"
 #include "stdlib.h"
 
 // troubleshooting
@@ -12,12 +12,14 @@
 #define LAST 1
 
 int main(){
+    // ensure UTF-8 encoding
+    setlocale(LC_ALL, "pl_PL.utf8");
 
-    char input[2000] = "Sed\n\n ut persp        iciatisundeomniistesss                  natus error sit voluptatem \n\n\naccusantium doloremquem laudantium, totam rem aperiam, eaque ipsa quae ab\n\n\n illo inventore veritatis\n\0";
-    char *buffer = calloc(3*N, sizeof(char ));
+    wchar_t input[2000] = L"Dom wariatów – obraz olejny hiszpańskiego malarza Francisca Goi. Dzieło przedstawia scenę rozgry bwającą się w domu dla obłąkanych. Znajdują się w nim nagie i półnagie groteskowe postaci.\n\n\nIch stroje, gesty i działania są dowodem obłąkania, które doprowadziło ich do zamknięci\nw tym miejscu. Obraz jest alegorią powszechnego szaleństwa, która obejmuje także tych, którzy rządzą światem: króla, papieża oraz wojskowych.\n\n Z drugiej strony, to właśnie ci uwięzieni są prawdziwie wolni \0";
+    wchar_t *buffer = calloc(3*N, sizeof(wchar_t ));
 //    char *buffer_additional = calloc(3*N, sizeof(char ));
 
-    justify_center(buffer, input, N, LAST);
+    justify_center(buffer, input, N, LAST, IDENT);
 
 
     return 0;
