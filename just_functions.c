@@ -113,7 +113,7 @@ void justify_center(wchar_t buffer[], wchar_t input[], int N, int alignment, int
     for (int j = 0; j < (3 * N) - 1; ++j) {
         help_buff[j] = L'\0';
     }
-    int i = 0;
+    size_t i = 0;
     while (i < wcslen(input) || help_buff[0] != L'\0') {
 
         // prepare our text to justification
@@ -266,92 +266,18 @@ void givingResult(wchar_t buffer[], int N, int even, int ident, int alignment){
     blowSpaces(result, buffer, words_counter, ident, even, is_last_row, alignment, N, holes, spaces_per_hole, additional_spaces, letters_counter);
 
 
-    // different alignment if it's the last row
-    if (is_last_row == 1){
-        wchar_t s = L' ';
-        int ind = 0;
-        // LEFT
-        if (alignment == 0){
-            // concatenate whole buffer to the result
-            if (buffer[ind] == L' ') ind++;
-            while (buffer[ind] != L'\0'){
-                wcsncat(result, &buffer[ind], 1);
-                ind++;
-            }
-            // no need to add spaces, word have to be aligned to the left
-        } // RIGHT
-        else if (alignment == 1){
-            for (int i = 0; i < (spaces_available); ++i) {
-                wcsncat(result, &s, 1);
-            }
-            wcscat(result, buffer);
-        } else if (alignment == 2){
-            spaces_per_hole = spaces_available / 2;
-            additional_spaces = spaces_available % 2;
-            // left spaces
-            for (int i = 0; i < (spaces_per_hole+additional_spaces); ++i) {
-                wcsncat(result, &s, 1);
-            }
-            // word
-            wcscat(result, buffer);
-        }
-
-    }
+    // LAST ROW ALIGNMENT
+    lastRowAlignment(buffer, result, spaces_available, spaces_per_hole, additional_spaces, is_last_row, alignment);
 
 
     // ADDITIONAL SPACES
-    int additional_len = wcslen(result);
-    int index = additional_len-1;
-    // align last according to the principals of a normal justification
-        // in even rows
-        if (even == 1) {
-            while (additional_spaces > 0 && words_counter > 1) {
-                // space was found
-                if (isspace(result[index])) {
-                    int ind = index;
-                    while (isspace(result[ind])) {
-                        ind--;
-                    }
-                    // shift right whole result to make place for additional space
-                    for (int c = N - 1; c > ind; c--) {
-                        result[c] = result[c - 1];
-                    }
-                    // insert space
-                    result[ind + 1] = L' ';
-                    additional_spaces--;
-                } else {
-                    index--;
-                }
-            }
-        } else {
-            // in odd words
-            index = 0;
-            while (additional_spaces > 0 && words_counter > 1) {
-                // space was found
-                if (isspace(result[index])) {
-                    int ind = index;
-                    while (isspace(result[ind])) {
-                        ind++;
-                    }
-                    // shift right whole result to make place for additional space
-                    for (int c = N - 1; c >= ind; c--) {
-                        result[c] = result[c - 1];
-                    }
-                    // insert space
-                    result[ind] = L' ';
-                    additional_spaces--;
-                } else {
-                    index++;
-                }
-            }
-        }
-        // normal end justification
-        if (is_last_row == 1 && alignment == 3){
-            wchar_t br[3] = L"\n\n\0";
-            wcscat(result, br);
-        }
+    additionalSpacesDistribution(result, even, additional_spaces, words_counter, N);
 
-//    }
+    // normal end justification
+    if (is_last_row == 1 && alignment == 3){
+        wchar_t br[3] = L"\n\n\0";
+        wcscat(result, br);
+    }
     printf("%ls\n", result);
 
     free(result);
