@@ -4,122 +4,26 @@
 #include <ctype.h>
 #include "stdlib.h"
 
-void prepare_text(wchar_t input[], int N, int *finishedPreparing, wchar_t *buffer) {
 
-    int letters = 0;
-    int index = 0;
-    wchar_t *preparedBuffer = calloc(N*3, sizeof(wchar_t));
-    while (letters < N+1){
-        int ind = index;
-        // LETTER
-        if (isspace(input[index]) == 0){
-            while (isspace(input[ind]) == 0) {
-                wchar_t w = input[ind];
-                wcsncat(preparedBuffer, &w, 1);
-                ind++;
-                letters++;
-;            }
-        } // WHITE SIGN
-        else {
-            // NEW PARAGRAPH
-            if (input[ind] == '\n'){
-                while (input[ind] == '\n') {
-                    ind++;
-                }
-                // new paragraph
-                if ((ind - index) >= 2){
-                    wchar_t br[3] = L"\n\n\0";
-                    wcscat(preparedBuffer, br);
-                    size_t pBL = wcslen(preparedBuffer);
-                    preparedBuffer[pBL] = '\0';
-                    *finishedPreparing = ind;
-                    wcscat(buffer, preparedBuffer);
-                    return;
-                }// space instead of paragraph
-                else {
-                    wchar_t sp = L' ';
-                    wcsncat(preparedBuffer, &sp, 1);
-                }
-            } // SPACE
-            else if (input[ind] == L' '){
-                while (input[ind] == L' ') {
-                    ind++;
-                }
-                wchar_t sp = L' ';
-                wcsncat(preparedBuffer, &sp, 1);
-            } else {
-                while (isspace(input[ind])) {
-                    ind++;
-                }
-            }
-        }
-        index = ind;
-    }
-    *finishedPreparing = index;
-
-    size_t pBL = wcslen(preparedBuffer);
-    preparedBuffer[pBL] = '\0';
-    wcscat(buffer, preparedBuffer);
-//    printf("%s\n", bufferNewLines);
-    memset(preparedBuffer, L'\0', N*3);
-}
-
-
-void justify_center(wchar_t buffer[], wchar_t input[], int N, int alignment, int ident){
+wchar_t *justify_center(wchar_t buffer[], wchar_t help_buff[], int N, int alignment, int INDENT){
     // pointer to the index where we finished preparing our text
-    int finishedPreparing = 0;
-    int paragraph_counter = 0;
-    int is_end_paragraph = 0;
-    wchar_t help_buff[N*3];
+//    int paragraph_counter = 0;
     int even = -1; // is even 1, is not -1
-    // clear buffer additional before everything
-    for (int j = 0; j < (3 * N) - 1; ++j) {
-        help_buff[j] = L'\0';
-    }
-    size_t i = 0;
-    while (i < wcslen(input) || help_buff[0] != L'\0') {
+//    printf("%ls\n", buffer);
+    while (buffer[0] != '\0') {
 
         // prepare our text to justification
         // copy text not justified text into our buffer to handle it
-        size_t help_buff_len = wcslen(help_buff);
-        // check if the paragraph is coming to the end
-        if (help_buff[help_buff_len-1] == L'\n'){
-            is_end_paragraph = 1;
-            paragraph_counter++;
-        }else {
-            is_end_paragraph = 0;
-        }
-        // clear help_buff, but do it only if we will place something inside
-        if (help_buff[0] != L'\0') {
-            wcscpy(buffer, help_buff);
-            // reset our buffer
-            memset(help_buff, L'\0', sizeof(help_buff));
-        }
 
-        // if everything is clear paragraph recently ended place ident at the beginning of the new buffer
+        // INDENT
         int placed_indent = 0;
-        // IDENT
-        if (wcslen(buffer) == 0){
-            for (int j = 0; j < ident; ++j) {
-                buffer[j] = L' ';
-            }
+        int INDENT_ind = 0;
+        while (buffer[INDENT_ind] == L' '){
+            INDENT_ind++;
+        }
+        if (INDENT_ind >= 1){
             placed_indent = 1;
         }
-
-        // give more text only if it's possible and we don't risk buffer overflow
-        if (i < wcslen(input) && help_buff_len < N*2 && is_end_paragraph == 0){
-            // shortened input only if first line
-            if (wcslen(buffer) == 0){
-                prepare_text(&input[i], N-ident, &finishedPreparing, buffer);
-            }else {
-                prepare_text(&input[i], N, &finishedPreparing, buffer);
-            }
-
-            // we finish at different indexes in every part of input, that's why wy have +=
-            i += finishedPreparing;
-        }
-
-//        printf("%ls\n", buffer);
 
         // go from the end of buffer to N and add every char to the buffer_additional
         // take care of extensive string
@@ -154,8 +58,7 @@ void justify_center(wchar_t buffer[], wchar_t input[], int N, int alignment, int
                 ind--;
             }
         }
-//
-//        // WHOLE-LINER CASE
+        // WHOLE-LINER CASE
         if (ind + 1 == 0) {
             // bring the word back to the buffer, while adding '-' at the end
             for (int w = 0; w < N - 1; w++) {
@@ -172,18 +75,35 @@ void justify_center(wchar_t buffer[], wchar_t input[], int N, int alignment, int
             }
         }
         buffer[N+1] = L'\0';
-//        printf("%ls \n", buffer);
-//
-//        // PROPER SPACE DIVISION
+
+        even *= -1;
+
+        // PROPER SPACE DIVISION
         if (placed_indent) {
-            givingResult(buffer, N-ident, even, ident, alignment);
+            givingResult(buffer, N-INDENT, even, INDENT, alignment);
         }else {
             givingResult(buffer, N, even, 0, alignment);
         }
-
-        even *= -1;
-        memset(buffer, L'\0', 3 * N);
+        // reset buffer
+        for (int i = 0; i < N*3; ++i) {
+            buffer[i] = L'\0';
+        }
     }
+
+    int ind = 0;
+    // copy help_buffer to the buffer
+//    wmemset(new_buffer, L'\0', N*3);
+    while (help_buff[ind] != '\0'){
+        buffer[ind] = help_buff[ind];
+        ind++;
+    }
+//    printf("%ls\n", buffer);
+    // reset our help_buffer
+    for (int i = 0; i < N*3; ++i) {
+        help_buff[i] = L'\0';
+    }
+    return buffer;
+
 }
 
 void infoWords(wchar_t buffer[], int N, int *words_counter, int *letters_counter){
@@ -236,16 +156,19 @@ void givingResult(wchar_t buffer[], int N, int even, int indent, int alignment){
 
     if (is_last_row == 0) {
         // TAKING CARE OF PROPER JUSTIFICATION
-        blowSpaces(result, buffer, words_counter, indent, even, alignment, N, holes, spaces_per_hole, additional_spaces, letters_counter);
+        blowSpaces(result, buffer, words_counter, indent, even, N, holes, spaces_per_hole, additional_spaces, letters_counter);
     }else {
         // LAST ROW ALIGNMENT
-        lastRowAlignment(buffer, result, N+indent, spaces_available, spaces_per_hole, additional_spaces, is_last_row, alignment);
+        lastRowAlignment(buffer, result, N+indent, spaces_available, is_last_row, alignment);
     }
 
     // normal end justification
     if (is_last_row == 1 && alignment == 3){
         wchar_t br[3] = L"\n\n\0";
         wcscat(result, br);
+    }
+    if (input_place == 0){
+        printf("\n\n");
     }
     printf("%ls\n", result);
 

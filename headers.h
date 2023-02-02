@@ -2,11 +2,14 @@
 
 #ifndef TEXT_JUSTIFICATION_V2_HEADERS_H
 
-void prepare_text(wchar_t text[], int N, int *finishedPreparing, wchar_t *buffer);
-void justify_center(wchar_t buffer[], wchar_t input[], int N, int alignment, int ident);
+// FLAGS
+int input_place;
+
+
+wchar_t *justify_center(wchar_t buffer[], wchar_t help_buff[], int N, int alignment, int indent);
 void givingResult(wchar_t buffer[], int N, int even, int indent, int alignment);
-void blowSpaces(wchar_t result[], wchar_t buffer[], int words_counter, int ident, int even, int alignment, int N, int holes, int spaces_per_hole, int additional_spaces, int letters_counter);
-void lastRowAlignment(wchar_t buffer[], wchar_t result[], int N, int spaces_available, int spaces_per_hole, int additional_spaces, int is_last_row, int alignment);
+void blowSpaces(wchar_t result[], wchar_t buffer[], int words_counter, int indent, int even, int N, int holes, int spaces_per_hole, int additional_spaces, int letters_counter);
+void lastRowAlignment(wchar_t buffer[], wchar_t result[], int N, int spaces_available, int is_last_row, int alignment);
 void additionalSpacesDistribution(wchar_t result[], int even, int additional_spaces, int words_counter, int N, int indent);
 
 
