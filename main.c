@@ -22,11 +22,8 @@ int main(int argc, char *argv[]) {
 
     wchar_t *readingBuffer = calloc(N*3, sizeof(wchar_t));
     wchar_t *help_buff = calloc(N*3, sizeof(wchar_t));
-//    wchar_t help_buff[N*3];
 
-//    wmemset(readingBuffer, L'\0', N*3);
-//    wmemset(help_buff, L'\0', N*3);
-
+    // HANDLING MAIN FUNCTION ARGUMENTS
     for (int i = 1; i < argc; i++)
     {
         if (argc % 2 == 0)
@@ -64,11 +61,9 @@ int main(int argc, char *argv[]) {
     }
 
     wint_t c;
-//    wchar_t nl = L'\n';
-//    wcsncat(readingBuffer, &nl, 1);
-    wchar_t indt = L' ';
+
     for (int i = 0; i < INDENT; ++i) {
-        wcsncat(readingBuffer, &indt, 1);
+        readingBuffer[i] = L' ';
     }
     int letters = INDENT;
     int br = 0;
@@ -85,23 +80,16 @@ int main(int argc, char *argv[]) {
             }
             if (br >= 2){
                 // adding double breakline
-                wchar_t w = L'\n';
-                wcsncat(readingBuffer, &w, 1);
-                wcsncat(readingBuffer, &w, 1);
+                wint_t len = wcslen(readingBuffer);
+                readingBuffer[len] = L'\n';
+                readingBuffer[len+1] = L'\n';
                 // run program
-//                *paragraph_started = 1;
                 readingBuffer = justify_center(readingBuffer, help_buff, N, LAST, INDENT);
                 input_place = 1;
-//                int id = 0;
-//                while (readingBuffer[id] != '\0'){
-//                    printf("%lc", *readingBuffer);
-//                    id++;
-//                }
-//                *paragraph_started = 0;
                 // RESET
                 // set indent
                 for (int i = 0; i < INDENT; ++i) {
-                    wcsncat(readingBuffer, &indt, 1);
+                    readingBuffer[i] = L' ';
                 }
                 letters = INDENT;
                 br = 0;
@@ -120,12 +108,6 @@ int main(int argc, char *argv[]) {
                 // run functions
                 readingBuffer = justify_center(readingBuffer, help_buff, N, LAST, INDENT);
                 input_place = 1;
-//                int id = 0;
-//                while (readingBuffer[id] != '\0'){
-//                    printf("%lc", *readingBuffer);
-//                    id++;
-//                }
-//                printf("%ls", readingBuffer);
                 letters = wcslen(readingBuffer);
                 br = 0;
                 whites = 0;
@@ -142,4 +124,10 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+    while (readingBuffer[0] != L'\0'){
+        readingBuffer = justify_center(readingBuffer, help_buff, N, LAST, INDENT);
+//        printf("\nreading buffer: %ls", readingBuffer);
+    }
+
+    printf("\n");
 }

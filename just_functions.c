@@ -1,15 +1,12 @@
 #include "headers.h"
 #include "string.h"
 #include "stdio.h"
-#include <ctype.h>
 #include "stdlib.h"
-
+#include "wctype.h"
 
 wchar_t *justify_center(wchar_t buffer[], wchar_t help_buff[], int N, int alignment, int INDENT){
     // pointer to the index where we finished preparing our text
-//    int paragraph_counter = 0;
     int even = -1; // is even 1, is not -1
-//    printf("%ls\n", buffer);
     while (buffer[0] != '\0') {
 
         // prepare our text to justification
@@ -45,10 +42,10 @@ wchar_t *justify_center(wchar_t buffer[], wchar_t help_buff[], int N, int alignm
 
 //        // get rid of chars that come from not-fitting words
 //        // TRIM OVERFLOWING STRING
-        if (!isspace(buffer[N] && buffer[N] != L'\0')) {
+        if (!iswspace(buffer[N] && buffer[N] != L'\0')) {
             // check how long is the word that exceeds the length
             ind = N;
-            while (!isspace(buffer[ind]) && ind >= 0) {
+            while (!iswspace(buffer[ind]) && ind >= 0) {
                 // move buff_help to the right
                 for (size_t c = wcslen(help_buff); c > 0; c--) {
                     help_buff[c] = help_buff[c - 1];
@@ -92,12 +89,10 @@ wchar_t *justify_center(wchar_t buffer[], wchar_t help_buff[], int N, int alignm
 
     int ind = 0;
     // copy help_buffer to the buffer
-//    wmemset(new_buffer, L'\0', N*3);
     while (help_buff[ind] != '\0'){
         buffer[ind] = help_buff[ind];
         ind++;
     }
-//    printf("%ls\n", buffer);
     // reset our help_buffer
     for (int i = 0; i < N*3; ++i) {
         help_buff[i] = L'\0';
@@ -110,10 +105,10 @@ void infoWords(wchar_t buffer[], int N, int *words_counter, int *letters_counter
     int ind = 0;
     while (ind < N){
         // if it's a letter
-        if (isspace(buffer[ind]) == 0 && buffer[ind] != L'\0'){
+        if (iswspace(buffer[ind]) == 0 && buffer[ind] != L'\0'){
             int w_ind = ind;
             // go to the end of encountered word
-            while (isspace(buffer[w_ind]) == 0 &&  w_ind < N){
+            while (iswspace(buffer[w_ind]) == 0 &&  w_ind < N){
                 w_ind++;
                 ++(*letters_counter);
             }

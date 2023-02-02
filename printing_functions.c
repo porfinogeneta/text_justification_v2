@@ -1,8 +1,6 @@
 #include "headers.h"
 #include "string.h"
-#include "stdio.h"
-#include <ctype.h>
-#include "stdlib.h"
+#include "wctype.h"
 
 void blowSpaces(wchar_t result[], wchar_t buffer[], int words_counter, int indent, int even, int N, int holes, int spaces_per_hole, int additional_spaces, int letters_counter){
     // NORMAL CASE JUSTIFICATION
@@ -10,7 +8,7 @@ void blowSpaces(wchar_t result[], wchar_t buffer[], int words_counter, int inden
         int ind = 0;
         while (ind < N+indent){
             // if we encountered word and didn't exceed word length
-            while (( isspace(buffer[ind])) == 0 && buffer[ind] != L'\0'){
+            while (( iswspace(buffer[ind])) == 0 && buffer[ind] != L'\0'){
                 wcsncat(result, &buffer[ind], 1);
                 ind++;
             }
@@ -22,14 +20,14 @@ void blowSpaces(wchar_t result[], wchar_t buffer[], int words_counter, int inden
                 }
                 // avoid additional space
                 placed_indent = 1;
-                if (isspace(buffer[indent])){
+                if (iswspace(buffer[indent])){
                     ind += indent;
                 }else {
                     ind += indent-1;
                 }
             }
             // if we encountered space, it's an obligatory one and it's not at the beginning
-            if (isspace(buffer[ind]) && holes > 0 && ind < N+indent && ind != 0 && placed_indent == 0){
+            if (iswspace(buffer[ind]) && holes > 0 && ind < N+indent && ind != 0 && placed_indent == 0){
                 wchar_t w = L' ';
                 for (int i = 0; i < spaces_per_hole; ++i) {
                     wcsncat(result, &w, 1);
@@ -58,7 +56,7 @@ void blowSpaces(wchar_t result[], wchar_t buffer[], int words_counter, int inden
                 wcsncat(result, &s, 1);
             }
             // add word
-            while (isspace(buffer[ind]) == 0 && buffer[ind] != L'\0'){
+            while (iswspace(buffer[ind]) == 0 && buffer[ind] != L'\0'){
                 wcsncat(result, &buffer[ind], 1);
                 ind++;
             }
@@ -122,9 +120,9 @@ void additionalSpacesDistribution(wchar_t result[], int even, int additional_spa
     if (even == 1) {
         while (additional_spaces > 0 && words_counter > 1) {
             // space was found
-            if (isspace(result[index])) {
+            if (iswspace(result[index])) {
                 int ind = index;
-                while (isspace(result[ind])) {
+                while (iswspace(result[ind])) {
                     ind--;
                 }
                 // shift right whole result to make place for additional space
@@ -144,9 +142,9 @@ void additionalSpacesDistribution(wchar_t result[], int even, int additional_spa
         index = indent;
         while (additional_spaces > 0 && words_counter > 1) {
             // space was found
-            if (isspace(result[index])) {
+            if (iswspace(result[index])) {
                 int ind = index;
-                while (isspace(result[ind])) {
+                while (iswspace(result[ind])) {
                     ind++;
                 }
                 // shift right whole result to make place for additional space
